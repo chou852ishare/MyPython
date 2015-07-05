@@ -7,7 +7,7 @@ import sys
 
 
 # constants
-N   = 60000   # number of nodes in network
+N   = 600000  # number of nodes in network
 T   = 10      # time horizon
 S   = 1       # |seed set|
 M   = 100     # big M
@@ -15,52 +15,53 @@ UB  = 100     # upper bound of variables
 
 
 # generate adjacency matrix
-w = np.zeros((N, N))
 # star-like network
-w[0] = np.ones(N) * 0.8
-w[0][0] = 0
+w_to    = range(1, N) # -w.T
+w_fr    = [0] * (N-1)
+w_val   = [-0.8] * (N-1)
 # chain network
 #for i in xrange(N-1):
 #    w[i][i+1] = 1 * 0.7
 
 # objective and constraint coefficients
-im_obj_t    = np.ones(N*T).tolist()
-im_obj_0    = np.ones(N).tolist()
-im_ub       = (UB * np.ones(N*T)).tolist()
-im_rhs      = np.concatenate((np.zeros(N*T), M*np.ones(N*T), S*np.ones(1))).tolist()
+im_obj_t    = [1] * (N*T)
+im_obj_0    = [1] * N
+im_ub       = [UB] * (N*T)
+im_rhs      = [0]*(N*T) + [M]*(N*T) + [S]
 im_sense    = 'L' * (2*N*T+1)
 
 
 # sparse constraint matrix
 # basic indices and values
-ind_w   = np.nonzero(-w.T)
-val_w   = (-w.T)[ind_w]
-ind_I   = (np.arange(N), np.arange(N))
-val_I   = np.ones(N)
+ind_w   = (w_to, w_fr)
+val_w   = w_val
+ind_I   = (range(N), range(N))
+val_I   = [1] * N
+val_M   = [M] * N
 # extend
-ind0    = np.array([])
-ind1    = np.array([])
-val     = np.array([])
+ind0    = []
+ind1    = []
+val     = []
 for t in xrange(T):
     # nonzero coefficients of w
-    ind0    = np.concatenate((ind0, ind_w[0]+t*N))
-    ind1    = np.concatenate((ind1, ind_w[1]+t*N))
-    val     = np.concatenate((val, val_w))
+    ind0.extend([x+t*N for x in ind_w[0]])
+    ind1.extend([x+t*N for x in ind_w[1]])
+    val.extend(val_w)
     # nonzero coefficients of I in c2
-    ind0    = np.concatenate((ind0, ind_I[0]+t*N))
-    ind1    = np.concatenate((ind1, ind_I[1]+(t+1)*N))
-    val     = np.concatenate((val, val_I))
+    ind0.extend([x+t*N for x in ind_I[0]])
+    ind1.extend([x+(t+1)*N for x in ind_I[1]])
+    val.extend(val_I)
     # nonzero coefficients of MI
-    ind0    = np.concatenate((ind0, ind_I[0]+(t+T)*N))
-    ind1    = np.concatenate((ind1, ind_I[1]))
-    val     = np.concatenate((val, val_I*M))
+    ind0.extend([x+(t+T)*N for x in ind_I[0]])
+    ind1.extend(ind_I[1])
+    val.extend(val_M)
     # nonzero coefficients of I in c3
-    ind0    = np.concatenate((ind0, ind_I[0]+(t+T)*N))
-    ind1    = np.concatenate((ind1, ind_I[1]+(t+1)*N))
-    val     = np.concatenate((val, val_I))
-ind0 = (np.concatenate((ind0, np.ones(N)*(2*N*T)))).astype(int).tolist()
-ind1 = (np.concatenate((ind1, np.arange(N)))).astype(int).tolist()
-val  = (np.concatenate((val, np.ones(N)))).tolist()
+    ind0.extend([x+(t+T)*N for x in ind_I[0]])
+    ind1.extend([x+(t+1)*N for x in ind_I[1]])
+    val.extend(val_I)
+ind0.extend([2*N*T] * N)
+ind1.extend(range(N))
+val.extend([1] * N)
 print len(ind0), len(ind1), len(val)
 
 
