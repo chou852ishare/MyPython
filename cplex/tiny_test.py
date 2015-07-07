@@ -7,7 +7,7 @@ import sys
 
 
 # constants
-N   = 600000  # number of nodes in network
+N   = 60000  # number of nodes in network
 T   = 10      # time horizon
 S   = 1       # |seed set|
 M   = 100     # big M
@@ -16,12 +16,14 @@ UB  = 100     # upper bound of variables
 
 # generate adjacency matrix
 # star-like network
-w_to    = range(1, N) # -w.T
-w_fr    = [0] * (N-1)
-w_val   = [-0.8] * (N-1)
+#w_to    = range(1, N) # -w.T
+#w_fr    = [0] * (N-1)
+#w_val   = [-0.8] * (N-1)
 # chain network
-#for i in xrange(N-1):
-#    w[i][i+1] = 1 * 0.7
+w_to     = range(1, N)
+w_fr     = range(0, N-1)
+w_val    = [-0.8] * (N-1)
+
 
 # objective and constraint coefficients
 im_obj_t    = [1] * (N*T)
